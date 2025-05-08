@@ -1,6 +1,7 @@
 import { sendError } from "../utils/response.js";
 import jwt from "jsonwebtoken";
-import { UserModel as User } from "../models/userSchema.js"; // Fixed consistency
+import { UserModel as User } from "../models/userModel.js";
+import { catchAsyncErrors } from "./catchAsyncErrors.js";
 
 const verifyToken = async (req, res, next) => {
   const tokenString = req.headers.authorization;
@@ -30,10 +31,9 @@ const verifyToken = async (req, res, next) => {
     req.user = {
       // Standard practice to attach to req.user
       id: user._id,
-      name: user.name,
+      username: user.username,
       email: user.email,
-      darkMode: user.darkMode,
-      profilePicture: user.profilePicture,
+      role: user.role
     };
 
     next();
@@ -46,6 +46,28 @@ const verifyToken = async (req, res, next) => {
       401
     );
   }
+};
+
+const authorizeRoles = (...allowedRoles) => {
+  return catchAsyncErrors(async (req, res, next) => {
+    if (!req.user) {
+      return sendError(res, "Unauthenticated", 401);
+    }
+
+    const userRoles = Array.isArray(req.user.role)
+      ? req.user.role
+      : [req.user.role].filter(Boolean);
+
+    const hasAccess = allowedRoles.some(role =>
+      userRoles.map(r => r.toLowerCase()).includes(role.toLowerCase())
+    );
+
+    if (!hasAccess && allowedRoles.length > 0) {
+      return sendError(res, `Role ${allowedRoles.join(", ")} require to access this source.` , 403);
+    }
+
+    next();
+  });
 };
 
 const verifyTempToken = async (req, res, next) => {
@@ -64,10 +86,9 @@ const verifyTempToken = async (req, res, next) => {
       return sendError(res, "Invalid token", 404);
     }
 
-    req.user = { email }; // Standardize attachment to req.user
+    req.user = { email };
     next();
   } catch (error) {
-    console.log(error);
     return sendError(
       res,
       error.name === "TokenExpiredError" ? "Token expired" : "Invalid token or",
@@ -104,4 +125,5 @@ export default {
   verifyToken,
   verifyTempToken,
   otpVerify,
+  authorizeRoles
 };
