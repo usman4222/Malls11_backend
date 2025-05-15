@@ -9,11 +9,19 @@ import profileRouter from "./routers/auth/profileRoute.js";
 // import { USER_ROLE } from "./config/enums/enums.js";
 // import jobRouter from "./routers/jobs/job.router.js";
 import upload from "./middlewares/upload.file.js";
+import gigRouter from "./routers/gig/gigRoute.js";
+import projectRouter from "./routers/project/projectRoute.js";
+import proposalRouter from "./routers/proposal/proposalRoute.js";
+import reviewRouter from "./routers/review/reviewRoute.js";
 // import authRouter from "./routers/auth/auth.router.js";
 const app = express.Router();
 
-app.use("/auth", authRouter);
+app.use("/auth", authRouter); 
 app.use("/profile", profileRouter);
+app.use("/gig", gigRouter);
+app.use("/project", projectRouter); 
+app.use("/proposal", proposalRouter);
+app.use("/review", reviewRouter);
 
 // app.use("/categories", categoryRouter);
 // app.use("/sub-categories", subCategoriesRouter);
