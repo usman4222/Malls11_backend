@@ -6,13 +6,16 @@ export const successResponse = (res, message, data = null, statusCode = 200) => 
   return res.status(statusCode).json({
     success: true,
     message,
-    data
+    ...data,
   });
 };
 
 export const sendError = (res, message, statusCode = 500, error = null) => {
-  const err = error || new Error(message);
+  const finalMessage = typeof message === 'object' ? message.message : message;
+
+  const err = error || new Error(finalMessage);
   err.statusCode = statusCode;
+
 
   // Send to Slack in production
   if (process.env.NODE_ENV === 'production') {
@@ -24,7 +27,7 @@ export const sendError = (res, message, statusCode = 500, error = null) => {
 
   return res.status(statusCode).json({
     success: false,
-    message,
+    message: finalMessage,
     ...(process.env.NODE_ENV === 'development' && { error: err.message })
   });
 };
