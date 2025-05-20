@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import { generateOTP } from "../../utils/generateOTP.js";
 import { sendVerificationEmail } from "../../utils/sendEmail.js";
 import { successResponse, sendError } from "../../utils/response.js";
-import { UserModel as User } from "../../models/userSchema.js";
+import { UserModel as User } from "../../models/userModel.js";
 import dotenv from "dotenv";
 import { validateEmail, validatePassword, validateRequiredFields } from "../../utils/validators.js";
 dotenv.config();
@@ -16,11 +16,9 @@ export const generateToken = (user) => {
   return jwt.sign(
     {
       userId: user._id,
-      name: user.name,
+      username: user.username,
       email: user.email,
-      profilePicture: user.profilePicture,
-      darkMode: user.darkMode,
-      tokenVersion: user.tokenVersion,
+      tokenVersion: user.tokenVersion
     },
     secretKey,
     { expiresIn: OTPexpiresIn }
@@ -94,14 +92,18 @@ export const sendOtp = async (email, name = null) => {
 export const registerUser = async (req, res, next) => {
   try {
     // Destructure only required fields from request body
-    const { username, fullname, email, password, role = 'client' } = req.body;
+    const { username, fullName, email, password, role = 'client' } = req.body;
 
-    if (
-      validateRequiredFields({ username, fullname, email, password }, next)
-    )
-      return;
-    if (validateEmail(email, next)) return;
-    if (validatePassword(password, next)) return;
+    const missingFieldsError = validateRequiredFields({ username, fullName, email, password });
+    if (missingFieldsError) return sendError(res, missingFieldsError, 400);
+
+    const emailError = validateEmail(email);
+    if (emailError) return sendError(res, emailError, 400);
+
+    const passwordError = validatePassword(password);
+    if (passwordError) return sendError(res, passwordError, 400);
+
+
 
     // Check for existing verified user
     const existingUser = await User.findOne({ email });
@@ -112,8 +114,21 @@ export const registerUser = async (req, res, next) => {
       // If user exists but not verified, we'll update their record
     }
 
+    // if (existingUser) {
+    // If user exists but wants to add new role
+    //     if (!existingUser.role.includes(role)) {
+    //         existingUser.role.push(role);
+    //         await existingUser.save();
+    //         return successResponse(res, "New role added to existing account", {
+    //             userId: existingUser._id,
+    //             roles: existingUser.role
+    //         }, 200);
+    //     }
+    //     return sendError(res, "User already exists with this role", 409);
+    // }
+
     // Generate OTP and temporary token
-    const { tempToken, otp } = await sendOtp(email, fullname);
+    const { tempToken, otp } = await sendOtp(email, fullName);
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
@@ -121,12 +136,11 @@ export const registerUser = async (req, res, next) => {
     // Prepare minimal user data
     const userData = {
       username,
-      fullname,
+      fullName,
       email,
       password: hashedPassword,
       otp,
       role,
-      profile_status: 'pending' // Explicitly set to pending
     };
 
     // Create or update user with only minimal data
@@ -147,7 +161,8 @@ export const registerUser = async (req, res, next) => {
     }
 
     // Generate verification URL
-    const verificationUrl = `${req.protocol}://${req.get('host')}/auth/register/verify-account?tempToken=${tempToken}`;
+    const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
+    const verificationUrl = `${CLIENT_URL}/auth/register/verify-account?tempToken=${tempToken}`;
 
     // Return success response
     return successResponse(
@@ -177,34 +192,40 @@ export const registerUser = async (req, res, next) => {
 export const resendAccountVerificationOtp = async (req, res) => {
   try {
     const { email } = req.body;
+
+    // Find user by email
     const user = await User.findOne({ email });
+
+    // Check if user exists
     if (!user) {
       return sendError(res, "User not found", 404);
     }
+
     if (user.isVerified) {
       return sendError(res, "Your account is already verified", 400);
     }
 
-    const { tempToken, otp } = await sendOtp(email, user.name);
+    const { tempToken, otp } = await sendOtp(email, user.username);
 
     user.otp = otp;
     await user.save();
 
     console.log({
-      Message: "OTP Resent Successfuly!",
+      Message: "OTP Resent Successfully!",
       newTempToken: tempToken,
       OTP: otp,
     });
 
-    return res
-      .status(200)
-      .json(
-        successResponse("OTP Resent Successfully", { newTempToken: tempToken })
-      );
+    return successResponse(
+      res,
+      "OTP Resent Successfully", { newTempToken: tempToken },
+      200
+    );
   } catch (error) {
     return sendError(res, error.message, 400);
   }
 };
+
 export const verifyAccount = async (req, res) => {
   try {
     const { email, otp } = req.body;
@@ -239,14 +260,17 @@ export const verifyAccount = async (req, res) => {
       201
     );
   } catch (error) {
+    console.log("error", error)
     return sendError(res, error.message, 400);
   }
 };
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
-    // console.log(user);
+    const user = await User.findOne({ email }).select('+password');
+
+    console.log("user", user)
+
     if (!user) {
       return sendError(res, "Invalid email or password", 402);
     }
@@ -268,6 +292,8 @@ export const login = async (req, res) => {
     }
 
     const token = generateToken(user);
+    const userWithoutPassword = user.toObject();
+    delete userWithoutPassword.password;
     console.log("Logged In as_________________________" + user.username);
 
     return successResponse(
@@ -282,12 +308,15 @@ export const login = async (req, res) => {
   }
 };
 
+
 export const changePassword = async (req, res) => {
   try {
+    console.log('Request user:', req.user); // Check if user is properly authenticated
+    console.log('Request body:', req.body);
     const { currentPassword, newPassword } = req.body;
     const userId = req.user.id;
 
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).select('+password');
     if (!user) {
       return sendError(res, "User not found", 404);
     }
@@ -307,6 +336,8 @@ export const changePassword = async (req, res) => {
     await user.save();
     return successResponse(res, "Password changed successfully", 200);
   } catch (error) {
+    console.error('Password Change Error:', error.message, error.stack);
+
     return sendError(res, "Internal server error", 500);
   }
 };
@@ -325,8 +356,8 @@ export const forgetPassword = async (req, res) => {
     user.otp = otp;
     await user.save();
 
-    const verificationUrl = `${req.protocol}://${req.get("host")}${req.originalUrl
-      }/verifyOtp?tempToken=${tempToken}`;
+    const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
+    const verificationUrl = `${CLIENT_URL}/auth/forget-password/verifyOtp?tempToken=${tempToken}`;
 
     console.log({
       Message: "OTP sent Successfuly!",
@@ -338,6 +369,7 @@ export const forgetPassword = async (req, res) => {
       200
     );
   } catch (error) {
+    console.log("error", error)
     return sendError(res, error.message, 400);
   }
 };
