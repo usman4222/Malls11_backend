@@ -3,13 +3,12 @@ import jwt from "jsonwebtoken";
 import { generateOTP } from "../../utils/generateOTP.js";
 import { sendVerificationEmail } from "../../utils/sendEmail.js";
 import { successResponse, sendError } from "../../utils/response.js";
-import { UserModel as User } from "../../models/userModel.js";
+import { UserModel as User } from "../../models/userSchema.js";
 import dotenv from "dotenv";
-import { validateEmail, validatePassword, validateRequiredFields } from "../../utils/validators.js";
+import { validateRequiredFields } from "../../utils/validators.js";
 dotenv.config();
 
 const secretKey = process.env.JWT_SECRET_KEY;
-// connst expiresIn = process.env.OTP_EXPIRES_IN
 const OTPexpiresIn = process.env.OTP_EXPIRES_IN;
 
 export const generateToken = (user) => {
@@ -91,27 +90,26 @@ export const sendOtp = async (email, name = null) => {
 
 export const registerUser = async (req, res, next) => {
   try {
-    // Destructure only required fields from request body
+
     const { username, fullName, email, password, role = 'client' } = req.body;
 
     const missingFieldsError = validateRequiredFields({ username, fullName, email, password });
     if (missingFieldsError) return sendError(res, missingFieldsError, 400);
 
-    const emailError = validateEmail(email);
-    if (emailError) return sendError(res, emailError, 400);
+    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+    if (!emailRegex.test(email)) {
+      return sendError(res, "Please enter a valid email address", 400);
+    }
 
-    const passwordError = validatePassword(password);
-    if (passwordError) return sendError(res, passwordError, 400);
+    if (password.length < 6) {
+      return sendError(res, "Password must be at least 6 characters long", 400)
+    }
 
-
-
-    // Check for existing verified user
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       if (existingUser.isVerified) {
         return sendError(res, 'User already registered. Proceed to login or use new email', 400);
       }
-      // If user exists but not verified, we'll update their record
     }
 
     // if (existingUser) {
@@ -127,13 +125,10 @@ export const registerUser = async (req, res, next) => {
     //     return sendError(res, "User already exists with this role", 409);
     // }
 
-    // Generate OTP and temporary token
     const { tempToken, otp } = await sendOtp(email, fullName);
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Prepare minimal user data
     const userData = {
       username,
       fullName,
@@ -143,7 +138,6 @@ export const registerUser = async (req, res, next) => {
       role,
     };
 
-    // Create or update user with only minimal data
     const user = await User.findOneAndUpdate(
       { email },
       userData,
@@ -151,7 +145,6 @@ export const registerUser = async (req, res, next) => {
         new: true,
         upsert: true,
         runValidators: true,
-        // Only set the fields we want for initial registration
         setDefaultsOnInsert: true
       }
     );
@@ -160,26 +153,22 @@ export const registerUser = async (req, res, next) => {
       return sendError(res, 'Failed to register user', 500);
     }
 
-    // Generate verification URL
     const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
     const verificationUrl = `${CLIENT_URL}/auth/register/verify-account?tempToken=${tempToken}`;
 
-    // Return success response
     return successResponse(
       res,
       'Verify account using OTP sent to your email',
       {
         verificationUrl,
         userId: user._id,
-        email: user.email
+        email: user.email,
+        ...userData
       },
       201
     );
 
   } catch (error) {
-    console.error('Registration error:', error);
-
-    // Handle Mongoose validation errors
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map(err => err.message);
       return sendError(res, `Validation failed: ${errors.join(', ')}`, 400);
@@ -373,6 +362,9 @@ export const forgetPassword = async (req, res) => {
     return sendError(res, error.message, 400);
   }
 };
+
+
+
 export const resendPasswordResetOtp = async (req, res) => {
   try {
     const { email } = req.body;
@@ -383,7 +375,6 @@ export const resendPasswordResetOtp = async (req, res) => {
     const { tempToken, otp } = await sendOtp(email);
     user.otp = otp;
     await user.save();
-    console.log("OTP Resent Successfully");
     return successResponse(
       res,
       "OTP sent Successfully!",
@@ -394,6 +385,10 @@ export const resendPasswordResetOtp = async (req, res) => {
     return sendError(res, error.message, 400);
   }
 };
+
+
+
+
 export const setNewPassword = async (req, res) => {
   try {
     const { newPassword } = req.body;

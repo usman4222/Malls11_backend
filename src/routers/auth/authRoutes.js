@@ -6,16 +6,18 @@ import authController from "../../controller/userController/authController.js";
 
 
 authRouter.post("/register-user",  authController.registerUser);
-authRouter.post("/register/resendOtp", tokenValidations.verifyTempToken, authController.resendAccountVerificationOtp);
+authRouter.post("/register/resendOtp", authController.resendAccountVerificationOtp);
 authRouter.post("/register/verify-account",tokenValidations.verifyTempToken, authController.verifyAccount);
 authRouter.post("/login", authController.login);
 authRouter.put("/change-password", tokenValidations.verifyToken, authController.changePassword);
 authRouter.post("/forget-password", authController.forgetPassword);
-authRouter.post("/forget-password/resendOtp", tokenValidations.verifyTempToken, authController.resendPasswordResetOtp);
+authRouter.post("/forget-password/resendOtp", 
+  // tokenValidations.verifyTempToken, 
+  authController.resendPasswordResetOtp);
 authRouter.post(
   "/forget-password/verifyOtp",
   // validateUserData,
-  tokenValidations.verifyTempToken,
+  // tokenValidations.verifyTempToken,
   tokenValidations.otpVerify,
   (req, res) => {
     res.status(200).json({ message: "OTP verified successfully." });

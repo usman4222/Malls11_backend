@@ -1,6 +1,6 @@
 import { successResponse, sendError } from "../../utils/response.js";
 import { UserModel as User } from "../../models/userSchema.js";
-
+import bcrypt from "bcrypt";
 
 
 export const createUserProfile = async (req, res) => {
@@ -79,7 +79,62 @@ export const getUserProfile = async (req, res) => {
     }
 };
 
+
+export const logoutUser = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return sendError(res, "User not found", 404);
+        }
+
+        // Invalidate the token by incrementing tokenVersion
+        user.tokenVersion = (user.tokenVersion || 0) + 1;
+        await user.save();
+
+        return successResponse(res, "Logout successful", null, 200);
+    } catch (error) {
+        console.error("Logout error:", error);
+        return sendError(res, "Failed to logout", 500);
+    }
+};
+
+
+export const deleteUserProfile = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { password } = req.body;
+
+        if (!password) {
+            return sendError(res, "Password is required to delete the profile", 400);
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return sendError(res, "User not found", 404);
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return sendError(res, "Incorrect password", 401);
+        }
+
+        // Soft delete: set profile_status to 'deleted'
+        // user.profile_status = "deleted";
+        // await user.save();
+        await User.findByIdAndDelete(userId);
+
+        return successResponse("User profile deleted successfully", 200);
+    } catch (error) {
+        return sendError(res, error.message, 500);
+    }
+};
+
+
 export default {
     createUserProfile,
-    getUserProfile
+    getUserProfile,
+    logoutUser,
+    deleteUserProfile
 };

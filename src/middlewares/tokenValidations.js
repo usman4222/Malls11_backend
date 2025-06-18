@@ -1,6 +1,6 @@
 import { sendError } from "../utils/response.js";
 import jwt from "jsonwebtoken";
-import { UserModel as User } from "../models/userModel.js";
+import { UserModel as User } from "../models/userSchema.js";
 import { catchAsyncErrors } from "./catchAsyncErrors.js";
 
 const verifyToken = async (req, res, next) => {
@@ -41,7 +41,7 @@ const verifyToken = async (req, res, next) => {
     return sendError(
       res,
       error.name === "TokenExpiredError"
-        ? "Token expired"
+        ? "Token expired, Please Login again!"
         : "Invalid token or malformed",
       401
     );
