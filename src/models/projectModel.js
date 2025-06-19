@@ -17,15 +17,13 @@ const projectSchema = new mongoose.Schema({
   },
   management_type: {
     type: String,
-    enum: ['admin', 'self'],
+    enum: ['Admin', 'Self'],
     required: true,
-    lowercase: true
   },
   project_type: {
     type: String,
-    enum: ['hourly', 'fixed'],
+    enum: ['Hourly', 'Fixed'],
     required: true,
-    lowercase: true
   },
   duration: {
     type: String,
@@ -33,9 +31,8 @@ const projectSchema = new mongoose.Schema({
   },
   experience: {
     type: String,
-    enum: ['beginner', 'intermediate', 'expert'],
+    enum: ['Beginner', 'Intermediate', 'Expert'],
     required: true,
-    lowercase: true
   },
   language: {
     type: String,
@@ -50,26 +47,39 @@ const projectSchema = new mongoose.Schema({
     required: true
   },
   hourly_rate: {
-    type: Number, // Using Number instead of Decimal for simplicity
-    default: null // Only required for hourly projects
+    type: {
+      min: {
+        type: Number,
+        required: false
+      },
+      max: {
+        type: Number,
+        required: false
+      }
+    },
+    default: null
   },
   fixed_price: {
     type: Number,
     default: null // Only required for fixed-price projects
   },
   skills: {
-    type: [String], // Array of strings (e.g., ["JavaScript", "React"])
+    type: [String],
     required: true
   },
   project_doc: {
-    type: String, // Store file path or URL (e.g., AWS S3 link)
+    type: String,
     default: null
+  },
+  visibility: {
+    type: String,
+    enum: ['Private', 'Public'],
+    default: 'Public'
   },
   status: {
     type: String,
-    enum: ['draft', 'published', 'in_progress', 'completed', 'cancelled'],
-    default: 'draft',
-    lowercase: true
+    enum: ['Draft', 'Published', 'In_progress', 'Completed', 'Cancelled'],
+    default: 'Draft',
   },
   created_at: {
     type: Date,

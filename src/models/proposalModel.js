@@ -18,7 +18,7 @@ const proposalSchema = new mongoose.Schema({
     },
     hourly_rate: {
         type: Number,
-        min: 0 // Ensures rate is non-negative
+        min: 0 
     },
     fixed_price: {
         type: Number,
@@ -31,9 +31,8 @@ const proposalSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['pending', 'accepted', 'rejected', 'withdrawn'],
-        default: 'pending',
-        lowercase: true 
+        enum: ['Pending', 'Accepted', 'Rejected', 'Withdrawn'],
+        default: 'Pending',
     },
     submitted_at: {
         type: Date,
