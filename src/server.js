@@ -4,7 +4,6 @@ import cors from "cors";
 import { dbConnection } from "./database/dbConnection.js";
 import { errorMiddleware } from "./middlewares/errorHandler.js";
 import  "dotenv/config";
-// import { authMiddleware } from "./middlewares/auth.middleware.js";
 import bodyParser from "body-parser";
 import multer from "multer";
 
@@ -23,9 +22,6 @@ expApp.use(cors({
   methods: ["GET", "POST", "PUT", "DELETE"],
 }));
 
-// Routes
-
-// expApp.use(authMiddleware);
 
 expApp.use("/", app);
 

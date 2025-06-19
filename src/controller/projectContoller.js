@@ -1,6 +1,7 @@
 
 
 import { Project } from "../models/projectModel.js";
+import proposalModel from "../models/proposalModel.js";
 import { sendError, successResponse } from "../utils/response.js";
 
 export const createProject = async (req, res) => {
@@ -24,12 +25,10 @@ export const createProject = async (req, res) => {
       visibility
     } = req.body;
 
-    // Validation: if Hourly project, hourly_rate is required
     if (project_type === "Hourly" && (!hourly_rate || hourly_rate.min == null || hourly_rate.max == null)) {
       return sendError(res, "Hourly rate range is required for Hourly projects", 400);
     }
 
-    // Validation: if Fixed project, fixed_price is required
     if (project_type === "Fixed" && (fixed_price == null || fixed_price === "")) {
       return sendError(res, "Fixed price is required for Fixed projects", 400);
     }
@@ -102,18 +101,15 @@ export const updateClientProject = async (req, res) => {
     const { id } = req.params;
     const clientId = req.user.id;
 
-    // Fetch the project by ID
     const project = await Project.findById(id);
     if (!project) {
       return sendError(res, "Project not found", 404);
     }
 
-    // Ensure that only the project owner (client) can update it
     if (project.client_id.toString() !== clientId.toString()) {
       return sendError(res, "Unauthorized to update this project", 403);
     }
 
-    // Fields allowed to update
     const updatableFields = [
       "title",
       "category",
@@ -132,7 +128,6 @@ export const updateClientProject = async (req, res) => {
       "status"
     ];
 
-    // Loop through fields and update only those provided
     updatableFields.forEach(field => {
       if (req.body[field] !== undefined) {
         project[field] = req.body[field];
@@ -242,6 +237,96 @@ export const getAllProjects = async (req, res) => {
   }
 };
 
+export const getProposalsByProject = async (req, res) => {
+  try {
+    const clientId = req.user.id;
+    const { projectId } = req.params;
+
+    const project = await Project.findOne({ _id: projectId, client_id: clientId });
+
+    if (!project) {
+      return sendError(res, "Project not found or not owned by you", 404);
+    }
+
+    const proposals = await proposalModel.find({ project_id: projectId })
+      // .populate('freelancer_id', 'username email') 
+      .sort({ submitted_at: -1 });
+
+    return successResponse(res, "Proposals fetched successfully", { proposals }, 200);
+  } catch (error) {
+    return sendError(res, error.message, 500);
+  }
+};
+
+
+export const getSingleProposal = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const userRole = req.user.role;
+    const { id } = req.params;
+
+    const proposal = await proposalModel.findById(id);
+
+    if (!proposal) {
+      return sendError(res, "Proposal not found", 404);
+    }
+
+    if (
+      userRole === 'freelancer' &&
+      proposal.freelancer_id.toString() !== userId
+    ) {
+      return sendError(res, "Unauthorized access to this proposal", 403);
+    }
+
+    if (userRole === 'client') {
+      const project = await Project.findById(proposal.project_id);
+      if (!project || project.client_id.toString() !== userId) {
+        return sendError(res, "Unauthorized access to this proposal", 403);
+      }
+    }
+
+    return successResponse(res, "Proposal fetched successfully", { proposal }, 200);
+  } catch (error) {
+    return sendError(res, error.message, 500);
+  }
+};
+
+
+export const updateProposalStatus = async (req, res) => {
+  try {
+    const clientId = req.user.id;         
+    const { id } = req.params;            
+    const { status } = req.body;
+
+    const validStatuses = ['Accepted'];
+    if (!validStatuses.includes(status)) {
+      return sendError(res, "Invalid status. Allowed: Accepted or Rejected", 400);
+    }
+
+    const proposal = await proposalModel.findById(id);
+    console.log("proposal",proposal)
+    if (!proposal) {
+      return sendError(res, "Proposal not found", 404);
+    }
+
+    const project = await Project.findById(proposal.project_id);
+    if (!project || project.client_id.toString() !== clientId.toString()) {
+      return sendError(res, "You are not authorized to update this proposal", 403);
+    }
+
+    if (proposal.status !== 'Pending') {
+      return sendError(res, "Only proposals with 'Pending' status can be updated", 400);
+    }
+
+    proposal.status = status;
+    await proposal.save();
+
+    return successResponse(res, `Proposal status updated to ${status}`, { proposal }, 200);
+  } catch (error) {
+    return sendError(res, error.message, 500);
+  }
+};
+
 
 
 export default {
@@ -252,5 +337,9 @@ export default {
   deleteClientProject,
   updateProjectVisibility,
   updateProjectStatus,
-  getAllProjects
+  getAllProjects,
+
+  getProposalsByProject,
+  getSingleProposal,
+  updateProposalStatus
 };

@@ -13,7 +13,11 @@ projectRouter.patch("/update-project-visibility/:id", tokenValidations.verifyTok
 projectRouter.patch("/update-project-status/:id", tokenValidations.verifyToken, projectContoller.updateProjectStatus);
 projectRouter.get("/all-projects", tokenValidations.verifyToken, projectContoller.getAllProjects);
 
-// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODUzMjU4ZWM3N2ZkNzkwZjA1ODRjYmIiLCJ1c2VybmFtZSI6ImRlc2lnbl9wcm8iLCJlbWFpbCI6InVzbWFuNDI0M2NoQGdtYWlsLmNvbSIsInRva2VuVmVyc2lvbiI6MSwiaWF0IjoxNzUwMjg4MDg2LCJleHAiOjE3NTAyOTE2ODZ9.JZwk5lWOQE5mMvuxgGABasJMJLOQFTVGglbvQFwDwSs
+
+projectRouter.get("/all-project-proposals/:projectId", tokenValidations.verifyToken, projectContoller.getProposalsByProject);
+projectRouter.get("/proposal/:id", tokenValidations.verifyToken, projectContoller.getSingleProposal);
+projectRouter.patch("/update-proposal-status/:id", tokenValidations.verifyToken, projectContoller.updateProposalStatus);
+
 
 projectRouter.use((err, req, res, next) => {
     console.error(err.stack);
