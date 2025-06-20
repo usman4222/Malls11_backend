@@ -9,5 +9,6 @@ app.use("/auth", authRouter);
 app.use("/profile", profileRouter);
 app.use("/project", projectRouter); 
 app.use("/proposal", proposalRouter);
+app.use("/gig", );
 
 export default app;
