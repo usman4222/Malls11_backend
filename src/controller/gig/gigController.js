@@ -1,5 +1,5 @@
 import { GigModel } from "../../models/gigModel.js";
-import { UserModel as User } from "../../models/userModel.js";
+import { UserModel as User } from "../../models/userSchema.js";
 import { sendError, successResponse } from "../../utils/response.js";
 
 export const createGig = async (req, res) => {
@@ -78,7 +78,7 @@ export const getAllGigs = async (req, res) => {
   try {
     const gigs = await GigModel.find().populate("userId", "fullname username email profilePicture")
 
-    return successResponse(res, "All gigs fetched successfully", { gigs, totalGig: proposals.gigs })
+    return successResponse(res, "All gigs fetched successfully", { gigs, totalGig: gigs.length })
   } catch (error) {
     console.error("Error fetching all gigs:", error)
     return sendError(res, "Error fetching all gigs: " + error.message, 500)
@@ -129,7 +129,7 @@ export const deleteGig = async (req, res) => {
     const gig = await GigModel.findOneAndDelete({ _id: gigId, userId });
     if (!gig) return sendError(res, "Gig not found or unauthorized", 404);
 
-    return successResponse(res, "Gig deleted successfully", { gig });
+    return successResponse(res, "Gig deleted successfully", null);
   } catch (error) {
     console.error("Error deleting gig:", error);
     return sendError(res, "Error deleting gig: " + error.message, 500);
