@@ -4,6 +4,7 @@ import profileRouter from "./routers/auth/profileRoute.js";
 import projectRouter from "./routers/projectRouter.js";
 import proposalRouter from "./routers/proposalRouter.js";
 import gigRouter from "./routers/gigRouter.js";
+import reviewRouter from "./routers/reviewRoute.js";
 const app = express.Router();
 
 app.use("/auth", authRouter); 
@@ -11,5 +12,6 @@ app.use("/profile", profileRouter);
 app.use("/project", projectRouter); 
 app.use("/proposal", proposalRouter);
 app.use("/gig", gigRouter);
+app.use("/review", reviewRouter);
 
 export default app;
