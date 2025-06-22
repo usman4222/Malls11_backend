@@ -89,7 +89,6 @@ export const logoutUser = async (req, res) => {
             return sendError(res, "User not found", 404);
         }
 
-        // Invalidate the token by incrementing tokenVersion
         user.tokenVersion = (user.tokenVersion || 0) + 1;
         await user.save();
 
@@ -132,9 +131,33 @@ export const deleteUserProfile = async (req, res) => {
 };
 
 
+export const getAllFreelancers = async (req, res) => {
+    try {
+        const freelancers = await User.find({ role: 'freelancer', profile_status: 'completed' });
+
+        if (!freelancers || freelancers.length === 0) {
+            return sendError(res, "No freelancers found", 404);
+        }
+
+        return successResponse(
+            res,
+            "Freelancers data retrieved successfully",
+            { freelancers },
+            200
+        );
+    } catch (error) {
+        return sendError(res, error.message, 500);
+    }
+};
+
+
+
+
+
 export default {
     createUserProfile,
     getUserProfile,
     logoutUser,
-    deleteUserProfile
+    deleteUserProfile,
+    getAllFreelancers
 };

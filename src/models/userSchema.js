@@ -11,10 +11,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      validate: {
-        validator: (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
-        message: props => `${props.value} is not a valid email!`
-      }
     },
     password: { type: String, required: true },
     isVerified: { type: Boolean, default: false },
@@ -24,26 +20,15 @@ const userSchema = new mongoose.Schema(
     profile_pic: { type: String, },
     contact_no: {
       type: String,
-      validate: {
-        validator: (v) => /^\+?\d{10,15}$/.test(v),
-        message: "Invalid phone number"
-      }
     },
     whatsapp_no: {
       type: String,
-      validate: {
-        validator: (v) => /^\+?\d{10,15}$/.test(v),
-        message: "Invalid WhatsApp number"
-      }
     },
 
     // Personal Details
     dof: {
       type: Date,
-      validate: {
-        validator: (v) => v === null || (v instanceof Date && !isNaN(v)),
-        message: "Invalid date"
-      }
+      default: null
     },
     gender: { type: String, enum: ["male", "female", "other"] },
 
@@ -54,17 +39,11 @@ const userSchema = new mongoose.Schema(
     // Verification
     cnic_no: {
       type: String,
-      validate: {
-        validator: (v) => /^\d{5}-\d{7}-\d$/.test(v),
-        message: "Invalid CNIC format (XXXXX-XXXXXXX-X)"
-      }
+      default: null,
     },
     passport_no: {
       type: String,
-      validate: {
-        validator: (v) => /^[A-Z]{1}[0-9]{7}$/.test(v),
-        message: "Invalid passport format (A1234567)"
-      }
+      default: null,
     },
     doc_pic: { type: String }, // URL to document
 
@@ -76,7 +55,7 @@ const userSchema = new mongoose.Schema(
     profile_des: { type: String, maxlength: 2000 },
     profile_status: {
       type: String,
-      enum: ["pending", "completed"],
+      enum: ["pending", "completed", "deleted"],
       default: "pending"
     },
     tokenVersion: {
@@ -94,10 +73,10 @@ const userSchema = new mongoose.Schema(
 
     // Role Management
     role: {
-      type: String,
+      type: [String],
       enum: ["admin", "client", "freelancer"],
       default: "client",
-      immutable: true // Prevents role changes after creation
+      // immutable: true 
     },
 
     // Freelancer Gigs (Only for role: 'freelancer')
@@ -134,12 +113,6 @@ const userSchema = new mongoose.Schema(
         },
         created_at: { type: Date, default: Date.now }
       }],
-      validate: {
-        validator: function (gigs) {
-          return this.role !== 'freelancer' || gigs.length <= 15; // Max 15 gigs
-        },
-        message: "Freelancers can have maximum 15 gigs"
-      }
     }
   },
   {

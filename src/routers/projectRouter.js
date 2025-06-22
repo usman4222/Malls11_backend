@@ -6,7 +6,7 @@ import projectContoller from "../controller/projectContoller.js";
 
 projectRouter.post("/create-project", tokenValidations.verifyToken, projectContoller.createProject);
 projectRouter.get("/all-client-projects", tokenValidations.verifyToken, projectContoller.getAllClientProjects);
-projectRouter.get("/get-single-project/:id", tokenValidations.verifyToken, projectContoller.getSingleProject);
+projectRouter.get("/single-project/:id", tokenValidations.verifyToken, projectContoller.getSingleProject);
 projectRouter.put("/update-project/:id", tokenValidations.verifyToken, projectContoller.updateClientProject);
 projectRouter.delete("/delete-project/:id", tokenValidations.verifyToken, projectContoller.deleteClientProject);
 projectRouter.patch("/update-project-visibility/:id", tokenValidations.verifyToken, projectContoller.updateProjectVisibility);
@@ -16,6 +16,7 @@ projectRouter.get("/all-projects", tokenValidations.verifyToken, projectContolle
 
 projectRouter.get("/all-project-proposals/:projectId", tokenValidations.verifyToken, projectContoller.getProposalsByProject);
 projectRouter.get("/proposal/:id", tokenValidations.verifyToken, projectContoller.getSingleProposal);
+projectRouter.get("/all-proposals", tokenValidations.verifyToken, projectContoller.getAllProposals);
 projectRouter.patch("/update-proposal-status/:id", tokenValidations.verifyToken, projectContoller.updateProposalStatus);
 
 

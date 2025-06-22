@@ -8,7 +8,7 @@ profileRouter.post("/create-profile", tokenValidations.verifyToken, profileContr
 profileRouter.get("/get-user-profile", tokenValidations.verifyToken, profileController.getUserProfile);
 profileRouter.post("/logout", tokenValidations.verifyToken, profileController.logoutUser);
 profileRouter.delete("/delete-profile", tokenValidations.verifyToken, profileController.deleteUserProfile);
-
+profileRouter.get("/get-all-freelancers", tokenValidations.verifyToken, profileController.getAllFreelancers);
 
 
 profileRouter.use((err, req, res, next) => {

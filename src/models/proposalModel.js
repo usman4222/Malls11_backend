@@ -26,7 +26,7 @@ const proposalSchema = new mongoose.Schema({
     },
     duration: {
         type: String,
-        enum: ['1 week', '2 weeks', '1 month', '3 months', '6 months+'],
+        // enum: ['1 week', '2 weeks', '1 month', '3 months', '6 months+'],
         required: true
     },
     status: {

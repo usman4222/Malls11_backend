@@ -64,9 +64,13 @@ export const getAllClientProjects = async (req, res) => {
   try {
     const user = req.user;
 
-    if (!user || user.role !== 'client') {
+    // if (!user || user.role !== 'client') {
+    //   return sendError(res, "Only clients can view their projects", 403);
+    // }
+    if (!user || !user.role.includes('client')) {
       return sendError(res, "Only clients can view their projects", 403);
     }
+
 
     const projects = await Project.find({ client_id: user.id });
 
@@ -173,9 +177,12 @@ export const updateProjectVisibility = async (req, res) => {
     const { visibility } = req.body;
     const clientId = req.user.id;
 
-    if (!["Private", "Public"].includes(visibility)) {
+    const validVisibilities = ["private", "public"];
+    if (!validVisibilities.includes(visibility.toLowerCase())) {
       return sendError(res, "Invalid visibility value", 400);
     }
+
+    project.visibility = visibility.toLowerCase();
 
     const project = await Project.findById(id);
     if (!project) {
@@ -294,8 +301,8 @@ export const getSingleProposal = async (req, res) => {
 
 export const updateProposalStatus = async (req, res) => {
   try {
-    const clientId = req.user.id;         
-    const { id } = req.params;            
+    const clientId = req.user.id;
+    const { id } = req.params;
     const { status } = req.body;
 
     const validStatuses = ['Accepted'];
@@ -304,7 +311,7 @@ export const updateProposalStatus = async (req, res) => {
     }
 
     const proposal = await proposalModel.findById(id);
-    console.log("proposal",proposal)
+    console.log("proposal", proposal)
     if (!proposal) {
       return sendError(res, "Proposal not found", 404);
     }
@@ -327,6 +334,31 @@ export const updateProposalStatus = async (req, res) => {
   }
 };
 
+export const getAllProposals = async (req, res) => {
+  try {
+    const user = req.user;
+
+    if (!user || !user.role.includes('client')) {
+      return sendError(res, "Only clients can view proposals", 403);
+    }
+    const proposals = await proposalModel.find({ client_id: user.id });
+
+    if (!proposals || proposals.length === 0) {
+      return sendError(res, "No proposals found for this client", 404);
+    }
+
+    return successResponse(
+      res,
+      "Client proposals fetched successfully",
+      { proposals, total: proposals.length },
+      200
+    );
+
+  } catch (error) {
+    return sendError(res, error.message, 500);
+  }
+};
+
 
 
 export default {
@@ -341,5 +373,6 @@ export default {
 
   getProposalsByProject,
   getSingleProposal,
-  updateProposalStatus
+  updateProposalStatus,
+  getAllProposals
 };
