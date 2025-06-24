@@ -14,19 +14,19 @@ export const createGig = async (req, res) => {
       packages,
     } = req.body;
 
-    if (
-      !title ||
-      !description ||
-      !category ||
-      !response_time ||
-      !min_hourly_rate ||
-      !max_hourly_rate ||
-      !packages ||
-      !Array.isArray(packages) ||
-      packages.length === 0
-    ) {
-      return sendError(res, "All fields are required", 400);
-    }
+    // if (
+    //   !title ||
+    //   !description ||
+    //   !category ||
+    //   !response_time ||
+    //   !min_hourly_rate ||
+    //   !max_hourly_rate ||
+    //   !packages ||
+    //   !Array.isArray(packages) ||
+    //   packages.length === 0
+    // ) {
+    //   return sendError(res, "All fields are required", 400);
+    // }
 
     const userId = req.user.id;
 
@@ -73,6 +73,20 @@ export const getMyGigs = async (req, res) => {
   }
 };
 
+export const getUserGigs = async (req, res) => {
+  try {
+    const { id } = req.params
+
+    const gigs = await GigModel.find({ id });
+
+    return successResponse(res, 'User Gigs fetched successfully', { gigs });
+  } catch (error) {
+    console.error('Error fetching gigs:', error);
+    return sendError(res, "Error fetching gigs: " + error.message, 500);
+  }
+};
+
+
 
 export const getAllGigs = async (req, res) => {
   try {
@@ -89,8 +103,8 @@ export const getAllGigs = async (req, res) => {
 
 export const getSingleGig = async (req, res) => {
   try {
-    const gigId = req.params.id;
-    const gig = await GigModel.findById(gigId);
+    const { id } = req.params
+    const gig = await GigModel.findById(id);
 
     if (!gig) return sendError(res, "Gig not found", 404);
 
@@ -104,7 +118,7 @@ export const getSingleGig = async (req, res) => {
 
 export const updateGig = async (req, res) => {
   try {
-    const gigId = req.params.id;
+    const { gigId } = req.params
     const userId = req.user.id;
 
     const gig = await GigModel.findOne({ _id: gigId, userId });
@@ -123,7 +137,7 @@ export const updateGig = async (req, res) => {
 
 export const deleteGig = async (req, res) => {
   try {
-    const gigId = req.params.id
+    const { gigId } = req.params
     const userId = req.user.id
 
     const gig = await GigModel.findOneAndDelete({ _id: gigId, userId });
@@ -141,6 +155,7 @@ export const deleteGig = async (req, res) => {
 export default {
   createGig,
   getMyGigs,
+  getUserGigs,
   getSingleGig,
   updateGig,
   deleteGig,

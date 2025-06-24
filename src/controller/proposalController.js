@@ -79,7 +79,7 @@ export const getMyProposals = async (req, res) => {
     const freelancerId = req.user.id;
 
     const proposals = await proposalModel.find({ freelancer_id: freelancerId })
-      // .populate('project_id', 'title category status') 
+      // .populate('project_id', 'title country status') 
       .sort({ submitted_at: -1 });
 
     return successResponse(res, "Freelancer proposals fetched successfully", { proposals }, 200);

@@ -60,7 +60,7 @@ export const createUserProfile = async (req, res) => {
 };
 
 
-export const getUserProfile = async (req, res) => {
+export const getMyProfile = async (req, res) => {
     try {
         const userId = req.user.id;
         const user = await User.findById(userId);
@@ -78,6 +78,28 @@ export const getUserProfile = async (req, res) => {
         return sendError(res, error.message, 500);
     }
 };
+
+export const getUserProfile = async (req, res) => {
+    try {
+        const { id } = req.params
+
+        const user = await User.findById(id);
+
+        if (!user) {
+            return sendError(res, "User not found", 404);
+        }
+
+        return successResponse(
+            res,
+            "User data retrieved successfully",
+            { user },
+            200
+        );
+    } catch (error) {
+        return sendError(res, error.message, 500);
+    }
+};
+
 
 
 export const logoutUser = async (req, res) => {
@@ -156,6 +178,7 @@ export const getAllFreelancers = async (req, res) => {
 
 export default {
     createUserProfile,
+    getMyProfile,
     getUserProfile,
     logoutUser,
     deleteUserProfile,

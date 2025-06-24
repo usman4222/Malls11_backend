@@ -13,26 +13,26 @@ const gigSchema = new mongoose.Schema({
         enum: ["design", "development", "writing", "marketing"],
         required: true
     },
-    response_time: { type: Number, min: 1, required: true }, // in hours
-    english_level: {
-        type: String,
-        enum: ["Basic", "Conversational", "Fluent", "Native"],
-        default: "Fluent"
-    },
-    min_hourly_rate: {
-        type: Number,
-        required: true
-    },
-    max_hourly_rate: {
-        type: Number,
-        validate: {
-            validator: function (value) {
-                return value >= this.min_hourly_rate;
-            },
-            message: "Max hourly rate must be greater than or equal to min hourly rate"
-        },
-        required: true
-    },
+    // response_time: { type: Number, min: 1, required: true }, 
+    // english_level: {
+    //     type: String,
+    //     enum: ["Basic", "Conversational", "Fluent", "Native"],
+    //     default: "Fluent"
+    // },
+    // min_hourly_rate: {
+    //     type: Number,
+    //     required: true
+    // },
+    // max_hourly_rate: {
+    //     type: Number,
+    //     validate: {
+    //         validator: function (value) {
+    //             return value >= this.min_hourly_rate;
+    //         },
+    //         message: "Max hourly rate must be greater than or equal to min hourly rate"
+    //     },
+    //     required: true
+    // },
     packages: [{
         tier: {
             type: String,
@@ -42,7 +42,7 @@ const gigSchema = new mongoose.Schema({
         description: { type: String, required: true },
         price: { type: Number, min: 5, required: true },
         delivery_time: { type: Number, min: 1, required: true },
-        revisions: { type: Number, default: 1, required: true },
+        revisions: { type: String, required: true },
         features: [String]
     }],
     status: {
