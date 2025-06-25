@@ -34,8 +34,6 @@ export const sendOtp = async (email, name = null) => {
     await sendVerificationEmail(email, otp, name);
 
     const tempToken = generateTempToken(email);
-    // console.log({ OTP: otp, Token: tempToken });
-    // console.log("OTP sent successfully to:", email);
     return { tempToken, otp };
   } catch (error) {
     console.error("Error sending OTP:", error);
