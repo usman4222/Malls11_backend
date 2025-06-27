@@ -10,7 +10,7 @@ projectRouter.get("/single-project/:id",  projectContoller.getSingleProject);
 projectRouter.put("/update-project/:id", tokenValidations.verifyToken, projectContoller.updateClientProject);
 projectRouter.delete("/delete-project/:id", tokenValidations.verifyToken, projectContoller.deleteClientProject);
 projectRouter.patch("/update-project-visibility/:id", tokenValidations.verifyToken, projectContoller.updateProjectVisibility);
-projectRouter.patch("/update-project-status/:id", tokenValidations.verifyToken, projectContoller.updateProjectStatus);
+projectRouter.patch("/change-project-status/:id", tokenValidations.verifyToken, projectContoller.updateProjectStatus);
 projectRouter.get("/all-projects", projectContoller.getAllProjects);
 
 

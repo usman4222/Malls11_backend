@@ -19,20 +19,14 @@ const gigSchema = new mongoose.Schema({
     //     enum: ["Basic", "Conversational", "Fluent", "Native"],
     //     default: "Fluent"
     // },
-    // min_hourly_rate: {
-    //     type: Number,
-    //     required: true
-    // },
-    // max_hourly_rate: {
-    //     type: Number,
-    //     validate: {
-    //         validator: function (value) {
-    //             return value >= this.min_hourly_rate;
-    //         },
-    //         message: "Max hourly rate must be greater than or equal to min hourly rate"
-    //     },
-    //     required: true
-    // },
+    min_hourly_rate: {
+        type: Number,
+        required: true
+    },
+    max_hourly_rate: {
+        type: Number,
+        required: true
+    },
     packages: [{
         tier: {
             type: String,
@@ -47,8 +41,8 @@ const gigSchema = new mongoose.Schema({
     }],
     status: {
         type: String,
-        enum: ["draft", "active", "paused"],
-        default: "draft"
+        enum: ["Draft", "Active", "Paused"],
+        default: "Draft"
     },
     created_at: { type: Date, default: Date.now }
 }, {

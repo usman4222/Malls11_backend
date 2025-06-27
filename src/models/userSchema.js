@@ -62,8 +62,8 @@ const userSchema = new mongoose.Schema(
     profile_des: { type: String, maxlength: 2000 },
     profile_status: {
       type: String,
-      enum: ["pending", "completed", "deleted"],
-      default: "pending"
+      enum: ["Pending", "Completed", "Deleted"],
+      default: "Pending"
     },
     profile_image: {
       type: String,

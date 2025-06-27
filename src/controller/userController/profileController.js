@@ -43,7 +43,7 @@ export const createUserProfile = async (req, res) => {
         user.hourly_rate = hourly_rate;
         user.profile_des = profile_des;
         user.social_links = social_links;
-        user.profile_status = "completed";
+        user.profile_status = "Completed";
 
         await user.save();
 
@@ -185,7 +185,7 @@ export const deleteUserProfile = async (req, res) => {
 
 export const getAllFreelancers = async (req, res) => {
     try {
-        const freelancers = await User.find({ role: 'freelancer', profile_status: 'completed' });
+        const freelancers = await User.find({ role: 'freelancer', profile_status: 'Completed' });
 
         if (!freelancers || freelancers.length === 0) {
             return sendError(res, "No freelancers found", 404);

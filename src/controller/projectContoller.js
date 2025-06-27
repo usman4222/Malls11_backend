@@ -239,14 +239,20 @@ export const updateProjectStatus = async (req, res) => {
 
 export const getAllProjects = async (req, res) => {
   try {
-    const projects = await Project.find()
-    // .populate('client_id', 'username email');
+    const projects = await Project.find({ visibility: "Public" });
+    // .populate('client_id', 'username email'); // Optional if needed
 
-    return successResponse(res, "All projects fetched successfully", { projects, total: projects.length }, 200);
+    return successResponse(
+      res,
+      "All public projects fetched successfully",
+      { projects, total: projects.length },
+      200
+    );
   } catch (error) {
     return sendError(res, error.message, 500);
   }
 };
+
 
 export const getProposalsByProject = async (req, res) => {
   try {

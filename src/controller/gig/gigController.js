@@ -14,19 +14,19 @@ export const createGig = async (req, res) => {
       packages,
     } = req.body;
 
-    // if (
-    //   !title ||
-    //   !description ||
-    //   !category ||
-    //   !response_time ||
-    //   !min_hourly_rate ||
-    //   !max_hourly_rate ||
-    //   !packages ||
-    //   !Array.isArray(packages) ||
-    //   packages.length === 0
-    // ) {
-    //   return sendError(res, "All fields are required", 400);
-    // }
+    if (
+      !title ||
+      !description ||
+      !category ||
+      // !response_time ||
+      !min_hourly_rate ||
+      !max_hourly_rate ||
+      !packages ||
+      !Array.isArray(packages) ||
+      packages.length === 0
+    ) {
+      return sendError(res, "All fields are required", 400);
+    }
 
     const userId = req.user.id;
 
@@ -75,9 +75,10 @@ export const getMyGigs = async (req, res) => {
 
 export const getUserGigs = async (req, res) => {
   try {
-    const { userId } = req.params
+    const { userId } = req.params;
 
-    const gigs = await GigModel.find({ userId });
+    // Only fetch gigs with status "Active"
+    const gigs = await GigModel.find({ userId, status: "Active" });
 
     return successResponse(res, 'User Gigs fetched successfully', { gigs });
   } catch (error) {
@@ -85,6 +86,7 @@ export const getUserGigs = async (req, res) => {
     return sendError(res, "Error fetching gigs: " + error.message, 500);
   }
 };
+
 
 
 
@@ -135,6 +137,39 @@ export const updateGig = async (req, res) => {
 };
 
 
+
+export const changeGigStatus = async (req, res) => {
+  try {
+    const freelancerId = req.user.id;
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const validStatuses = ["Draft", "Active", "Paused"];
+    if (!validStatuses.includes(status)) {
+      return sendError(res, "Invalid status. Allowed: Draft, Active, Paused", 400);
+    }
+
+    const gig = await GigModel.findById(id);
+    if (!gig) {
+      return sendError(res, "Gig not found", 404);
+    }
+
+    if (!gig.userId || gig.userId.toString() !== freelancerId.toString()) {
+      return sendError(res, "You are not authorized to update this gig", 403);
+    }
+
+    gig.status = status;
+    await gig.save();
+
+    return successResponse(res, `Gig status updated to ${status}`, { gig }, 200);
+  } catch (error) {
+    return sendError(res, error.message, 500);
+  }
+};
+
+
+
+
 export const deleteGig = async (req, res) => {
   try {
     const { id } = req.params
@@ -158,6 +193,7 @@ export default {
   getUserGigs,
   getSingleGig,
   updateGig,
+  changeGigStatus,
   deleteGig,
   getAllGigs
 };
