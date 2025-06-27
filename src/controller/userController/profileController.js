@@ -5,60 +5,90 @@ import bcrypt from "bcrypt";
 
 export const createUserProfile = async (req, res) => {
     try {
-        const userId = req.user.id; createUserProfile
+        const userId = req.user.id;
         const {
-            contact_no,
             whatsapp_no,
-            dof,
             gender,
             country,
             state,
-            cnic_no,
-            passport_no,
-            doc_pic,
+            user_doc,
             hourly_rate,
             profile_des,
             social_links,
-            freelancer_gig,
+            awards,
+            skills,
+            faqs,
+            profile_image
         } = req.body;
 
         const user = await User.findById(userId);
-        if (!user) return res.status(404).json({ error: "User not found" });
+
+        if (!user) return sendError(res, "User not found", 404)
 
         // Update profile fields
-        user.contact_no = contact_no;
         user.whatsapp_no = whatsapp_no;
-        user.dof = dof;
         user.gender = gender;
         user.country = country;
         user.state = state;
-        user.cnic_no = cnic_no;
-        user.passport_no = passport_no;
-        user.doc_pic = doc_pic;
+        user.awards = awards;
+        user.skills = skills;
+        user.faqs = faqs;
+        user.profile_image = profile_image,
+            user.user_doc =
+            typeof user_doc === "object" && user_doc?.url
+                ? user_doc.url
+                : typeof user_doc === "string"
+                    ? user_doc
+                    : null;
         user.hourly_rate = hourly_rate;
         user.profile_des = profile_des;
         user.social_links = social_links;
         user.profile_status = "completed";
 
-        // Only allow gig if user is a freelancer
-        if (user.role === "freelancer" && Array.isArray(freelancer_gig)) {
-            user.freelancer_gig = freelancer_gig;
-        } else if (user.role !== "freelancer" && freelancer_gig?.length > 0) {
-            return res.status(400).json({ error: "Only freelancers can create gigs" });
-        }
-
         await user.save();
 
-        return res
-            .status(200)
-            .json(
-                successResponse("Profile completed successfully", { user })
-            );
+        return successResponse(res, "Profile completed successfully", { user })
     } catch (error) {
+        console.log("Error creating user profile:", error);
         return sendError(res, error.message, 500);
     }
 };
 
+
+export const verifyUserProfile = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const {
+            contact_no,
+            address,
+            cnic_no,
+            passport_no,
+            verification_document
+        } = req.body;
+
+        // Find the user
+        const user = await User.findById(userId);
+        if (!user) {
+            return sendError(res, "User not found", 404)
+        }
+
+        // Update fields
+        user.contact_no = contact_no;
+        user.address = address;
+        user.cnic_no = cnic_no;
+        user.passport_no = passport_no;
+        user.verification_document = verification_document || null;
+        user.profile_verified = true; 
+
+        await user.save();
+
+        return successResponse(res, "User verified successfully", { user })
+    } catch (error) {
+        console.log("Error verifing user profile:", error);
+        return sendError(res, error.message, 500);
+    }
+};
 
 export const getMyProfile = async (req, res) => {
     try {
@@ -178,6 +208,7 @@ export const getAllFreelancers = async (req, res) => {
 
 export default {
     createUserProfile,
+    verifyUserProfile,
     getMyProfile,
     getUserProfile,
     logoutUser,

@@ -6,6 +6,7 @@ import profileController from "../../controller/userController/profileController
 
 profileRouter.post("/create-profile", tokenValidations.verifyToken, profileController.createUserProfile);
 profileRouter.get("/get-my-profile", tokenValidations.verifyToken, profileController.getMyProfile);
+profileRouter.put("/verify-profile", tokenValidations.verifyToken, profileController.verifyUserProfile);
 profileRouter.get("/get-user-profile/:id", tokenValidations.verifyToken, profileController.getUserProfile);
 profileRouter.post("/logout", tokenValidations.verifyToken, profileController.logoutUser);
 profileRouter.delete("/delete-profile", tokenValidations.verifyToken, profileController.deleteUserProfile);

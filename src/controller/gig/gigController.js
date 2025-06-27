@@ -75,9 +75,9 @@ export const getMyGigs = async (req, res) => {
 
 export const getUserGigs = async (req, res) => {
   try {
-    const { id } = req.params
+    const { userId } = req.params
 
-    const gigs = await GigModel.find({ id });
+    const gigs = await GigModel.find({ userId });
 
     return successResponse(res, 'User Gigs fetched successfully', { gigs });
   } catch (error) {
@@ -137,10 +137,10 @@ export const updateGig = async (req, res) => {
 
 export const deleteGig = async (req, res) => {
   try {
-    const { gigId } = req.params
+    const { id } = req.params
     const userId = req.user.id
 
-    const gig = await GigModel.findOneAndDelete({ _id: gigId, userId });
+    const gig = await GigModel.findOneAndDelete({ _id: id, userId });
     if (!gig) return sendError(res, "Gig not found or unauthorized", 404);
 
     return successResponse(res, "Gig deleted successfully", null);

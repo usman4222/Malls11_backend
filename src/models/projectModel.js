@@ -61,7 +61,7 @@ const projectSchema = new mongoose.Schema({
   },
   fixed_price: {
     type: Number,
-    default: null // Only required for fixed-price projects
+    default: null 
   },
   skills: {
     type: [String],

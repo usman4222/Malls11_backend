@@ -6,8 +6,8 @@ import gigController from "../controller/gig/gigController.js";
 
 gigRouter.post("/create-gig", tokenValidations.verifyToken, gigController.createGig);
 gigRouter.get("/my-gigs", tokenValidations.verifyToken, gigController.getMyGigs);
-gigRouter.get("/user-gigs/:id", tokenValidations.verifyToken, gigController.getUserGigs);
-gigRouter.get("/get-single-gig/:id", tokenValidations.verifyToken, gigController.getSingleGig);
+gigRouter.get("/user-gigs/:userId", tokenValidations.verifyToken, gigController.getUserGigs);
+gigRouter.get("/get-single-gig/:id",  gigController.getSingleGig);
 gigRouter.put("/update-gig/:id", tokenValidations.verifyToken, gigController.updateGig);
 gigRouter.delete("/delete-gig/:id", tokenValidations.verifyToken, gigController.deleteGig);
 gigRouter.get("/all-gigs", tokenValidations.verifyToken, gigController.getAllGigs);

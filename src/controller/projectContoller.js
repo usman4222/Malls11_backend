@@ -153,7 +153,6 @@ export const deleteClientProject = async (req, res) => {
     const clientId = req.user.id;
 
     const project = await Project.findById(id);
-
     if (!project) {
       return sendError(res, "Project not found", 404);
     }
@@ -162,10 +161,16 @@ export const deleteClientProject = async (req, res) => {
       return sendError(res, "Unauthorized to delete this project", 403);
     }
 
+    const proposalCount = await proposalModel.countDocuments({ project_id: id });
+    if (proposalCount > 0) {
+      return sendError(res, "Cannot delete project with active proposals", 400);
+    }
+
     await Project.findByIdAndDelete(id);
 
     return successResponse(res, "Project deleted successfully", null, 200);
   } catch (error) {
+    console.error("Error deleting project:", error);
     return sendError(res, error.message, 500);
   }
 };
@@ -177,12 +182,11 @@ export const updateProjectVisibility = async (req, res) => {
     const { visibility } = req.body;
     const clientId = req.user.id;
 
-    const validVisibilities = ["private", "public"];
-    if (!validVisibilities.includes(visibility.toLowerCase())) {
+    const validVisibilities = ["Private", "Public"];
+    if (!validVisibilities.includes(visibility)) {
       return sendError(res, "Invalid visibility value", 400);
     }
 
-    project.visibility = visibility.toLowerCase();
 
     const project = await Project.findById(id);
     if (!project) {
@@ -196,7 +200,7 @@ export const updateProjectVisibility = async (req, res) => {
     project.visibility = visibility;
     await project.save();
 
-    return successResponse(res, "Project visibility updated", { visibility: project.visibility }, 200);
+    return successResponse(res, "Project visibility updated", { visibility }, 200);
   } catch (error) {
     return sendError(res, error.message, 500);
   }
@@ -272,7 +276,8 @@ export const getSingleProposal = async (req, res) => {
     const userRole = req.user.role;
     const { id } = req.params;
 
-    const proposal = await proposalModel.findById(id);
+    const proposal = await proposalModel.findById(id).populate('freelancer_id', 'username email profile_image country');
+    console.log("getSingleProposal", proposal)
 
     if (!proposal) {
       return sendError(res, "Proposal not found", 404);
@@ -287,6 +292,7 @@ export const getSingleProposal = async (req, res) => {
 
     if (userRole === 'client') {
       const project = await Project.findById(proposal.project_id);
+
       if (!project || project.client_id.toString() !== userId) {
         return sendError(res, "Unauthorized access to this proposal", 403);
       }
