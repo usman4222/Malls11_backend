@@ -15,7 +15,7 @@ projectRouter.get("/all-projects", projectContoller.getAllProjects);
 
 
 projectRouter.get("/all-project-proposals/:projectId", tokenValidations.verifyToken, projectContoller.getProposalsByProject);
-projectRouter.get("/proposal/:id", tokenValidations.verifyToken, projectContoller.getSingleProposal);
+projectRouter.get("/single-proposal/:id", tokenValidations.verifyToken, projectContoller.getSingleProposal);
 projectRouter.get("/all-proposals", tokenValidations.verifyToken, projectContoller.getAllProposals);
 projectRouter.patch("/update-proposal-status/:id", tokenValidations.verifyToken, projectContoller.updateProposalStatus);
 

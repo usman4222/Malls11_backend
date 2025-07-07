@@ -54,21 +54,24 @@ const authorizeRoles = (...allowedRoles) => {
       return sendError(res, "Unauthenticated", 401);
     }
 
-    const userRoles = Array.isArray(req.user.role)
-      ? req.user.role
-      : [req.user.role].filter(Boolean);
+    const userRole = req.user.role?.toLowerCase();
 
-    const hasAccess = allowedRoles.some(role =>
-      userRoles.map(r => r.toLowerCase()).includes(role.toLowerCase())
+    const hasAccess = allowedRoles.some(
+      role => role.toLowerCase() === userRole
     );
 
     if (!hasAccess && allowedRoles.length > 0) {
-      return sendError(res, `Role ${allowedRoles.join(", ")} require to access this source.` , 403);
+      return sendError(
+        res,
+        `Role ${allowedRoles.join(", ")} required to access this resource.`,
+        403
+      );
     }
 
     next();
   });
 };
+
 
 const verifyTempToken = async (req, res, next) => {
   const { tempToken: token } = req.query;

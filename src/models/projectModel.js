@@ -6,6 +6,11 @@ const projectSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  freelancer_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    default: null
+  },
   title: {
     type: String,
     required: true,
@@ -61,7 +66,7 @@ const projectSchema = new mongoose.Schema({
   },
   fixed_price: {
     type: Number,
-    default: null 
+    default: null
   },
   skills: {
     type: [String],

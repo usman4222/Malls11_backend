@@ -20,6 +20,10 @@ export const createReview = async (req, res) => {
       return sendError(res, 'Project not found', 404);
     }
 
+    if (project.status !== 'Completed') {
+      return sendError(res, 'You can only review a completed project', 403);
+    }
+
     const client = await UserModel.findById(client_id);
     if (!client || !client.role === 'client') {
       return sendError(res, 'Invalid client', 404);
@@ -48,7 +52,7 @@ export const createReview = async (req, res) => {
       review_text
     });
 
-    return successResponse(res, 'Review created successfully', {review}, 201);
+    return successResponse(res, 'Review created successfully', { review }, 201);
 
   } catch (error) {
     console.error('Error creating review:', error);
@@ -70,7 +74,7 @@ export const getReviews = async (req, res) => {
     }
 
     const reviews = await Review.find(filter)
-      .populate('freelancer_id', 'username'); 
+      .populate('freelancer_id', 'username');
 
     if (!reviews || reviews.length === 0) {
       return sendError(res, 'No reviews found', 404);
@@ -161,7 +165,6 @@ export const getFreelancerReviews = async (req, res) => {
   try {
     const { freelancer_id } = req.params;
 
-    console.log('Fetching reviews for freelancer:', freelancer_id);
     if (!freelancer_id) {
       return sendError(res, 'Freelancer ID is required', 400);
     }
@@ -172,9 +175,9 @@ export const getFreelancerReviews = async (req, res) => {
     }
 
     const reviews = await Review.find({ freelancer_id })
-      .populate('client_id', 'username ') 
-      .populate('project_id', 'title') 
-      .sort({ createdAt: -1 }); 
+      .populate('client_id', 'username profile_image country')
+      .populate('project_id', 'title')
+      .sort({ createdAt: -1 });
 
     const averageRating = reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length || 0;
 

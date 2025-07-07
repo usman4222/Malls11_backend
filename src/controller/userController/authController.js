@@ -331,9 +331,7 @@ export const changePassword = async (req, res) => {
 export const forgetPassword = async (req, res) => {
   try {
     const { email } = req.body;
-    // console.log(email);
     const user = await User.findOne({ email });
-    // console.log(user);
     if (!user) {
       return sendError(res, "User not found", 404);
     }
@@ -346,9 +344,7 @@ export const forgetPassword = async (req, res) => {
     const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
     const verificationUrl = `${CLIENT_URL}/auth/forget-password/verifyOtp?tempToken=${tempToken}`;
 
-    console.log({
-      Message: "OTP sent Successfuly!",
-    });
+
     return successResponse(
       res,
       "OTP sent Successfully!",

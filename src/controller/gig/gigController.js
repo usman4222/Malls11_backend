@@ -31,7 +31,10 @@ export const createGig = async (req, res) => {
     const userId = req.user.id;
 
     const user = await User.findById(userId);
-    if (!user || !user.role.includes("freelancer")) {
+
+    console.log("user",user)
+
+    if (!user || user.role !== "freelancer") {
       return sendError(res, { message: "Only freelancers can create gigs." }, 403);
     }
 

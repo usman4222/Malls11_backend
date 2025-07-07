@@ -67,7 +67,7 @@ export const getAllClientProjects = async (req, res) => {
     // if (!user || user.role !== 'client') {
     //   return sendError(res, "Only clients can view their projects", 403);
     // }
-    if (!user || !user.role.includes('client')) {
+    if (!user || !user.role === 'client') {
       return sendError(res, "Only clients can view their projects", 403);
     }
 
@@ -227,6 +227,25 @@ export const updateProjectStatus = async (req, res) => {
       return sendError(res, "Unauthorized to update this project", 403);
     }
 
+    if (project.status === 'Completed') {
+      return sendError(res, "Project is already marked as Completed and cannot be updated.", 400);
+    }
+
+    if (status === 'Cancelled' && project.status === 'In_progress') {
+      project.freelancer_id = null;
+      project.status = 'Published';
+
+      await proposalModel.updateMany(
+        { project_id: id, status: 'Accepted' },
+        {
+          $set: {
+            status: 'Cancelled',
+            cancel_reason: 'Cancelled by client due to conflict'
+          }
+        }
+      );
+    }
+
     project.status = status;
     await project.save();
 
@@ -289,20 +308,20 @@ export const getSingleProposal = async (req, res) => {
       return sendError(res, "Proposal not found", 404);
     }
 
-    if (
-      userRole === 'freelancer' &&
-      proposal.freelancer_id.toString() !== userId
-    ) {
-      return sendError(res, "Unauthorized access to this proposal", 403);
-    }
+    // if (
+    //   userRole === 'freelancer' &&
+    //   proposal.freelancer_id.toString() !== userId
+    // ) {
+    //   return sendError(res, "Unauthorized access to this proposal", 403);
+    // }
 
-    if (userRole === 'client') {
-      const project = await Project.findById(proposal.project_id);
+    // if (userRole === 'client') {
+    //   const project = await Project.findById(proposal.project_id);
 
-      if (!project || project.client_id.toString() !== userId) {
-        return sendError(res, "Unauthorized access to this proposal", 403);
-      }
-    }
+    //   if (!project || project.client_id.toString() !== userId) {
+    //     return sendError(res, "Unauthorized access to this proposal", 403);
+    //   }
+    // }
 
     return successResponse(res, "Proposal fetched successfully", { proposal }, 200);
   } catch (error) {
@@ -337,8 +356,21 @@ export const updateProposalStatus = async (req, res) => {
       return sendError(res, "Only proposals with 'Pending' status can be updated", 400);
     }
 
+    const alreadyAccepted = await proposalModel.findOne({
+      project_id: proposal.project_id,
+      status: 'Accepted'
+    });
+
+    if (alreadyAccepted) {
+      return sendError(res, "A proposal has already been accepted for this project", 409);
+    }
+
     proposal.status = status;
     await proposal.save();
+
+    project.freelancer_id = proposal.freelancer_id;
+    project.status = "In_progress";
+    await project.save();
 
     return successResponse(res, `Proposal status updated to ${status}`, { proposal }, 200);
   } catch (error) {
@@ -350,7 +382,7 @@ export const getAllProposals = async (req, res) => {
   try {
     const user = req.user;
 
-    if (!user || !user.role.includes('client')) {
+    if (!user || !user.role !== "client") {
       return sendError(res, "Only clients can view proposals", 403);
     }
     const proposals = await proposalModel.find({ client_id: user.id });

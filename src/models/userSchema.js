@@ -83,7 +83,7 @@ const userSchema = new mongoose.Schema(
 
     // Role Management
     role: {
-      type: [String],
+      type: String,
       enum: ["admin", "client", "freelancer"],
       default: "client",
       // immutable: true 
