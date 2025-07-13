@@ -19,10 +19,15 @@ const verifyToken = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY || secretKey);
     const { userId, tokenVersion } = decoded;
 
+    console.log("tokenVersion",tokenVersion)
+
     const user = await User.findById(userId);
     if (!user) {
       return sendError(res, "User not found", 404);
     }
+
+    console.log("User tokenVersion",user.tokenVersion)
+
 
     if (user.tokenVersion !== tokenVersion) {
       return sendError(res, "Session expired. Please login again.", 401);

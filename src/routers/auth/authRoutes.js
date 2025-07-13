@@ -15,19 +15,18 @@ authRouter.post("/forget-password", authController.forgetPassword);
 authRouter.post("/forget-password/resendOtp",
   // tokenValidations.verifyTempToken, 
   authController.resendPasswordResetOtp);
-authRouter.post(
-  "/forget-password/verifyOtp",
-  // validateUserData,
-  // tokenValidations.verifyTempToken,
-  tokenValidations.otpVerify,
-  (req, res) => {
-    successResponse(
-      res,
-      "OTP Verified Successfully!",
-      200
-    );
-  }
-);
+  authRouter.post(
+    "/forget-password/verifyOtp",
+    tokenValidations.otpVerify,
+    (req, res) => {
+      return successResponse(
+        res,
+        "OTP sent Successfully!",
+        200
+      );
+    }
+  );
+  
 
 
 authRouter.post("/forget-password/reset-password",  tokenValidations.otpVerify, authController.setNewPassword);

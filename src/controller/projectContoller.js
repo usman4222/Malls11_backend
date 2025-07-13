@@ -258,7 +258,10 @@ export const updateProjectStatus = async (req, res) => {
 
 export const getAllProjects = async (req, res) => {
   try {
-    const projects = await Project.find({ visibility: "Public" });
+    const projects = await Project.find({
+      visibility: "Public",
+      status: "Published"
+    });
     // .populate('client_id', 'username email'); // Optional if needed
 
     return successResponse(
