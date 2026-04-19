@@ -12,9 +12,8 @@ authRouter.post("/register/verify-account", tokenValidations.verifyTempToken, au
 authRouter.post("/login", authController.login);
 authRouter.put("/change-password", tokenValidations.verifyToken, authController.changePassword);
 authRouter.post("/forget-password", authController.forgetPassword);
-authRouter.post("/forget-password/resendOtp",
-  // tokenValidations.verifyTempToken, 
-  authController.resendPasswordResetOtp);
+authRouter.post("/forget-password/resendOtp",// tokenValidations.verifyTempToken, 
+authController.resendPasswordResetOtp);
   authRouter.post(
     "/forget-password/verifyOtp",
     tokenValidations.otpVerify,
