@@ -5,88 +5,51 @@ dotenv.config();
 
 export const sendVerificationEmail = async (userEmail, otp, username) => {
   try {
-    // Validate required email configuration
-    const requiredConfig = [
-      'EMAIL_SERVICE',
-      'EMAIL_USERNAME',
-      'EMAIL_PASSWORD',
-      'EMAIL_FROM'
-    ];
-
-    const missingConfig = requiredConfig.filter(key => !process.env[key]);
-    if (missingConfig.length > 0) {
-      throw new Error(`Missing email configuration: ${missingConfig.join(', ')}`);
-    }
-
-    // Create transporter using Gmail SMTP
+    // Create transporter for Hostinger SMTP
     const transporter = nodemailer.createTransport({
-      service: process.env.EMAIL_SERVICE,
+      host: process.env.EMAIL_HOST,
+      port: parseInt(process.env.EMAIL_PORT || '587'),
+      secure: process.env.EMAIL_SECURE === 'true',
+      requireTLS: true,
       auth: {
         user: process.env.EMAIL_USERNAME,
-        pass: process.env.EMAIL_PASSWORD
-      }
+        pass: process.env.EMAIL_PASSWORD,
+      },
+      family: 4, 
     });
 
-    // Email content
+    // Verify connection
+    await transporter.verify();
+
     const emailPurpose = username ? "account verification" : "password reset";
     const expirationTime = process.env.EMAIL_VERIFICATION_EXPIRES_IN || '24 hours';
 
     const mailOptions = {
-      from: `Rana Usman <${process.env.EMAIL_FROM}>`,
+      from: `Malls11 <${process.env.EMAIL_FROM}>`,
       to: userEmail,
-      subject: `${otp} is your Rana Usman verification code`,
+      subject: `${otp} is your verification code - Malls11`,
       html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <style>
-                body { font-family: Arial, sans-serif; line-height: 1.6; }
-                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                .header { text-align: center; margin-bottom: 20px; }
-                .otp { 
-                    font-size: 24px; 
-                    font-weight: bold; 
-                    color: #2563eb;
-                    text-align: center;
-                    margin: 20px 0;
-                }
-                .footer { margin-top: 30px; font-size: 12px; color: #666; }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <h2>Rana Usman</h2>
-                </div>
-                <p>Dear ${username || 'User'},</p>
-                <p>Your verification code for ${emailPurpose} is:</p>
-                <div class="otp">${otp}</div>
-                <p>This code will expire in ${expirationTime}.</p>
-                <p>If you didn't request this, please ignore this email.</p>
-                <div class="footer">
-                    <p>© ${new Date().getFullYear()} Rana Usman. All rights reserved.</p>
-                </div>
-            </div>
-        </body>
-        </html>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2 style="color: #333;">Malls11</h2>
+          <p>Dear ${username || 'User'},</p>
+          <p>Your verification code for ${emailPurpose} is:</p>
+          <div style="font-size: 28px; font-weight: bold; color: #2563eb; text-align: center; padding: 15px; background: #f3f4f6; border-radius: 8px; letter-spacing: 5px;">
+            ${otp}
+          </div>
+          <p>This code will expire in ${expirationTime}.</p>
+          <p>If you didn't request this, please ignore this email.</p>
+          <hr/>
+          <p style="font-size: 12px; color: #666;">© Malls11. All rights reserved.</p>
+        </div>
       `,
-      text: `
-        Rana Usman Verification\n
-        Dear ${username || 'User'},\n
-        Your verification code is: ${otp}\n
-        This code will expire in ${expirationTime}.\n
-        If you didn't request this, please ignore this email.\n
-        © ${new Date().getFullYear()} Rana Usman
-      `
     };
 
-    // Send email
     const info = await transporter.sendMail(mailOptions);
-    console.log('Email sent:', info.messageId);
+    console.log('✅ Email sent:', info.messageId);
     return { success: true, message: 'Verification email sent' };
 
   } catch (error) {
-    console.error('Email sending error:', error);
+    console.error('Email error:', error.message);
     throw new Error(`Failed to send email: ${error.message}`);
   }
 };
