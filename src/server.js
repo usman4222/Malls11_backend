@@ -16,16 +16,20 @@ expApp.use(forms.array());
 
 const PORT = process.env.PORT || 3000;
 
-expApp.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  next();
-});
+expApp.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "http://145.223.118.108:3000",
+      "http://malls11.com:8083",
+      "http://malls11.com",
+      "https://malls11.com",
+      "http://145.223.118.108",
+    ],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+  }),
+);
 
 expApp.use("/", app);
 expApp.use(errorMiddleware);
